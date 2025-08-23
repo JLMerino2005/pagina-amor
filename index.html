@@ -52,6 +52,7 @@
     .btn{padding:12px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#1b1b27;color:#fff;cursor:pointer}
     .btn.primary{background:linear-gradient(135deg,var(--brand),#ff7aa5);border-color:#ff9ec3;color:#12121b;box-shadow:var(--glow)}
 
+    /* floating hearts */
     .floaters{position:relative;min-height:260px;overflow:hidden;border-radius:var(--radius)}
     .floater{position:absolute;bottom:-40px;font-size:18px;animation:rise var(--d) linear infinite;opacity:.85;filter:drop-shadow(0 6px 10px rgba(255,77,141,.25))}
     @keyframes rise{from{transform:translateY(40px)}to{transform:translateY(-320px) rotate(20deg)}}
@@ -60,10 +61,12 @@
     h2{margin:0 0 10px}
     .muted{color:var(--muted)}
 
+    /* carta */
     .type{min-height:120px;white-space:pre-wrap}
     .cursor{display:inline-block;width:10px;background:#ff8fb4;margin-left:2px;animation:blink 1s steps(2,end) infinite}
     @keyframes blink{50%{background:transparent}}
 
+    /* motivos */
     .grid{display:grid;gap:14px}
     .grid.m3{grid-template-columns:repeat(3,1fr)}
     .grid.m2{grid-template-columns:repeat(2,1fr)}
@@ -71,11 +74,13 @@
     @media (max-width:620px){.grid.m2,.grid.m3{grid-template-columns:1fr}}
     .reason{padding:16px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 
+    /* timeline */
     .timeline{position:relative;padding-left:18px}
     .timeline::before{content:"";position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(var(--brand),transparent)}
     .step{position:relative;margin:16px 0;padding-left:8px}
     .dot{position:absolute;left:-2px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px rgba(255,77,141,.15)}
 
+    /* galería */
     .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     @media (max-width:800px){.gallery{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:520px){.gallery{grid-template-columns:1fr}}
@@ -87,18 +92,23 @@
     dialog::backdrop{background:rgba(0,0,0,.6)}
     .full img{max-width:92vw;max-height:80vh;border-radius:14px}
 
+    /* quiz */
     .q{margin:10px 0;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
     .q label{display:block;margin:6px 0;cursor:pointer}
     .q input{margin-right:8px}
 
+    /* countdown */
     .count{display:flex;gap:10px;flex-wrap:wrap}
     .chip{min-width:110px;text-align:center;padding:12px;border-radius:14px;background:#1b1b27;border:1px solid rgba(255,255,255,.08)}
     .chip strong{display:block;font-size:24px}
 
+    .target{margin-top:8px}
+    /* confetti */
     .hidden{display:none !important}
     .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
     .piece{position:absolute;width:10px;height:16px;opacity:.9;animation:fall linear forwards}
     @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:1}}
+
     @media (prefers-reduced-motion: reduce){
       * { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition:none !important; }
       .floater, .confetti { display:none !important; }
@@ -109,6 +119,8 @@
       .card{ box-shadow:none; border:1px solid #ddd; }
       a{ color:#000; }
     }
+    footer{margin-top:32px;color:#9aa2b2;text-align:center}
+    footer a{color:#cbd5e1}
   </style>
 </head>
 <body>
@@ -168,7 +180,7 @@
     <!-- GALERÍA -->
     <section id="galeria" class="card">
       <h2>📷 Galería</h2>
-      <p class="muted">Toca para ver en grande</p>
+      <p class="muted">Toca para ver en grande. Usa ⟨ / ⟩ o ← / → para cambiar.</p>
       <div class="gallery" id="gal"></div>
 
       <dialog id="lightbox">
@@ -207,6 +219,7 @@
         <button class="btn" id="btn-clear">Limpiar</button>
       </div>
       <div class="count" id="count"></div>
+      <div id="target-info" class="muted target"></div>
     </section>
 
     <footer>
@@ -274,12 +287,14 @@
     }));
     qs('#btn-scroll').onclick=()=>document.querySelector('#carta').scrollIntoView({behavior:'smooth'});
 
-    // compartir
+    // compartir (incluye la cita si existe)
     function linkConNombre(){
       const u=new URL(location.href);
       u.searchParams.set('para', nombre);
       u.searchParams.set('de', de);
       if(musicaURL) u.searchParams.set('musica', musicaURL);
+      const citaLocal = localStorage.getItem('proxima_local');
+      if(citaLocal) u.searchParams.set('cita', citaLocal); // <-- esto hace que en el cel de tu pareja aparezca la hora/fecha
       return u.toString();
     }
     async function copiar(texto){
@@ -333,76 +348,92 @@ ${de}`;
       ['Tu paciencia','Gracias por quedarte incluso cuando el camino se pone difícil.'],
       ['Nosotros','Porque lo nuestro es equipo, compañía y amor.']
     ];
-    const reasons=qs('#reasons'); MOTIVOS.forEach(([t,d])=>{
-      const c=document.createElement('div'); c.className='reason';
-      c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`;
-      reasons.appendChild(c);
-    });
+    const reasons=qs('#reasons'); MOTIVOS.forEach(([t,d])=>{ const c=document.createElement('div'); c.className='reason'; c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`; reasons.appendChild(c); });
 
     // timeline
     const MOMENTOS=[['El inicio','Ese día que empezamos a hablarnos diferente'],['La primera salida','Las mariposas confirmaron lo que ya sabíamos'],['Nuestro futuro','Lo bonito que estamos construyendo juntos']];
-    const tl=qs('#timeline'); MOMENTOS.forEach(([t,d])=>{
-      const s=document.createElement('div'); s.className='step';
-      s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`;
-      tl.appendChild(s);
-    });
+    const tl=qs('#timeline'); MOMENTOS.forEach(([t,d])=>{ const s=document.createElement('div'); s.className='step'; s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`; tl.appendChild(s); });
 
-    // ======== GALERÍA (usa tus archivos exactos) ========
-    const imagenes = [
-      {src:'img/numero1.jpg?v=10', alt:'95, siempre serás mi número 1'},
-      {src:'img/nina-bebe.jpg?v=10', alt:'Foto de bebé'},
-      {src:'img/selfie-champion.jpg.jpg?v=10', alt:'Selfie con sudadera Champion gris'},
-      {src:'img/con-gatito.jpg?v=10', alt:'Con su gatito'},
-      {src:'img/retrato-rosa.jpg.jpg?v=10', alt:'Retrato con fondo rosa'},
-      {src:'img/sombrero-cuadros.jpg.jpg?v=10', alt:'Sombrero y camisa a cuadros'},
-      {src:'img/nino-escuela.jpg.jpg?v=10', alt:'Infancia en la escuela'},
-      {src:'img/carrusel.jpg?v=10', alt:'Niña en carrusel'},
-      {src:'img/selfie-espejo-iphone.jpg.jpg?v=10', alt:'Selfie en espejo con iPhone'},
-      {src:'img/collage.jpg?v=10', alt:'Collage de recuerdos'},
-      {src:'img/selfie-hoodie.jpg.jpg?v=10', alt:'Selfie con capucha gris'},
-      {src:'img/selfie-liston-flores.jpg.jpg?v=10', alt:'Selfie con listón de flores'},
-      {src:'img/selfie-sonrisa.jpg.jpg?v=10', alt:'Selfie sonriente'}
+    // ========= GALERÍA ROBUSTA =========
+    // Cambia estos "base" por tus nombres de archivo (sin extensión).
+    const IMAGENES_META = [
+      { base: ['numero1'],              alt: '95, siempre serás mi número 1' },
+      { base: ['nina-bebe'],            alt: 'Foto de bebé' },
+      { base: ['selfie-champion'],      alt: 'Selfie con sudadera Champion gris' },
+      { base: ['con-gatito'],           alt: 'Con su gatito' },
+      { base: ['retrato-rosa'],         alt: 'Retrato con fondo rosa' },
+      { base: ['sombrero-cuadros'],     alt: 'Sombrero y camisa a cuadros' },
+      { base: ['nino-escuela','ni%C3%B1o-escuela'], alt: 'Infancia en la escuela' },
+      { base: ['carrusel'],             alt: 'Niña en carrusel' },
+      { base: ['selfie-espejo-iphone'], alt: 'Selfie en espejo con iPhone' },
+      { base: ['collage'],              alt: 'Collage de recuerdos' },
+      { base: ['selfie-hoodie'],        alt: 'Selfie con capucha gris' },
+      { base: ['selfie-liston-flores'], alt: 'Selfie con listón de flores' },
+      { base: ['selfie-sonrisa'],       alt: 'Selfie sonriente' }
     ];
-    const gal=qs('#gal'); const RES = imagenes.map(x=>x.src);
-    imagenes.forEach(({src,alt},i)=>{
-      const ph=document.createElement('div'); ph.className='ph';
-      const img=document.createElement('img'); img.loading='lazy'; img.alt=alt; img.src=src;
-      const b=document.createElement('button'); b.className='btn'; b.textContent='Ver';
-      b.onclick=()=>abrirLightbox(i);
-      ph.append(img,b); gal.appendChild(ph);
-    });
+    const EXTS = ['.jpg','.jpeg','.png','.JPG','.JPEG','.PNG'];
+    const VERSION='v10'; // súbelo si cambias imágenes para forzar recarga
+    const gal=qs('#gal');
+    const RESUELTAS = new Array(IMAGENES_META.length).fill(null);
+
+    function testSrc(url){
+      return new Promise(resolve=>{
+        const img=new Image();
+        img.onload = ()=>resolve(true);
+        img.onerror= ()=>resolve(false);
+        img.src = url;
+      });
+    }
+    async function resolveImagePath(bases){
+      const tried=[];
+      for(const b of bases){
+        for(const ext of EXTS){
+          const url=`img/${b}${ext}?${VERSION}`;
+          tried.push(url);
+          if(await testSrc(url)) return {url,tried};
+        }
+      }
+      return {url:null,tried};
+    }
+    (async function buildGallery(){
+      for(let i=0;i<IMAGENES_META.length;i++){
+        const {base,alt}=IMAGENES_META[i];
+        const ph=document.createElement('div'); ph.className='ph';
+        const img=document.createElement('img'); img.loading='lazy'; img.alt=alt;
+        const b=document.createElement('button'); b.className='btn'; b.textContent='Ver'; b.disabled=true; b.style.opacity=.7;
+        ph.append(img,b); gal.appendChild(ph);
+        const {url,tried}=await resolveImagePath(base);
+        if(url){ RESUELTAS[i]=url; img.src=url; b.disabled=false; b.style.opacity=1; b.onclick=()=>abrirLightbox(i); }
+        else{
+          ph.style.border='2px solid #f87171';
+          ph.innerHTML=`<div style="padding:10px;text-align:center">
+            <div style="font-weight:600;color:#fecaca">No se pudo cargar</div>
+            <div class="muted" style="font-size:12px;word-break:break-all">${tried.join('<br>')}</div>
+          </div>`;
+          console.warn('Ninguna variante encontrada para:', base);
+        }
+      }
+    })();
 
     const dlg=qs('#lightbox'); const full=qs('#fullimg'); let fotoActual=0;
-    function abrirLightbox(i){
-      fotoActual=i;
-      full.src = RES[i];
-      full.alt = imagenes[i].alt;
-      dlg.showModal();
-    }
+    function abrirLightbox(i){ if(!RESUELTAS[i]) return; fotoActual=i; full.src=RESUELTAS[i]; full.alt=IMAGENES_META[i].alt; dlg.showModal(); }
     function cambiarFoto(dir){
-      fotoActual = (fotoActual + dir + RES.length) % RES.length;
-      full.src = RES[fotoActual];
-      full.alt = imagenes[fotoActual].alt;
+      let next=fotoActual;
+      for(let k=0;k<IMAGENES_META.length;k++){
+        next=(next+dir+IMAGENES_META.length)%IMAGENES_META.length;
+        if(RESUELTAS[next]){ fotoActual=next; full.src=RESUELTAS[next]; full.alt=IMAGENES_META[next].alt; break; }
+      }
     }
     dlg.addEventListener('click',e=>{ if(e.target.tagName==='DIALOG') dlg.close(); });
     window.addEventListener('keydown',e=>{ if(!dlg.open) return; if(e.key==='ArrowRight') cambiarFoto(1); if(e.key==='ArrowLeft') cambiarFoto(-1); if(e.key==='Escape') dlg.close(); });
 
     // quiz
-    const PREGUNTAS=[
-      {t:`¿Mi plan perfecto contigo?`,o:['Cine y palomitas','Caminata y helado','Maratón de series','Viaje sorpresa'],ok:1},
-      {t:`¿Mi apodo favorito para ti?`,o:['Amor','Vida','Chiquita/o','Mi persona'],ok:3},
-      {t:`¿Canción que me recuerda a ti?`,o:['La que te haga sonreír','Cualquiera que bailemos','Nuestra playlist','Todas las anteriores'],ok:3}
-    ];
-    const qbox=qs('#quiz'); PREGUNTAS.forEach((q,qi)=>{
-      const d=document.createElement('div'); d.className='q'; d.innerHTML=`<div><strong>${qi+1}. ${q.t}</strong></div>`;
-      q.o.forEach((op,oi)=>{ const lab=document.createElement('label'); lab.innerHTML=`<input type="radio" name="q${qi}" value="${oi}"> ${op}`; d.appendChild(lab); });
-      qbox.appendChild(d);
-    });
+    const PREGUNTAS=[{t:`¿Mi plan perfecto contigo?`,o:['Cine y palomitas','Caminata y helado','Maratón de series','Viaje sorpresa'],ok:1},{t:`¿Mi apodo favorito para ti?`,o:['Amor','Vida','Chiquita/o','Mi persona'],ok:3},{t:`¿Canción que me recuerda a ti?`,o:['La que te haga sonreír','Cualquiera que bailemos','Nuestra playlist','Todas las anteriores'],ok:3}];
+    const qbox=qs('#quiz'); PREGUNTAS.forEach((q,qi)=>{ const d=document.createElement('div'); d.className='q'; d.innerHTML=`<div><strong>${qi+1}. ${q.t}</strong></div>`; q.o.forEach((op,oi)=>{ const lab=document.createElement('label'); lab.innerHTML=`<input type="radio" name="q${qi}" value="${oi}"> ${op}`; d.appendChild(lab); }); qbox.appendChild(d); });
+
     function confetti(){
       const wrap=qs('#confetti'); const colors=['#ff4d8d','#ffafcc','#7dd3fc','#a7f3d0','#fde68a'];
-      for(let i=0;i<160;i++){
-        const p=document.createElement('div'); p.className='piece';
-        const x=Math.random()*100; const d=6+Math.random()*5; const color=colors[i%colors.length];
+      for(let i=0;i<160;i++){ const p=document.createElement('div'); p.className='piece'; const x=Math.random()*100; const d=6+Math.random()*5; const color=colors[i%colors.length];
         p.style.left=x+'vw'; p.style.top='-5vh'; p.style.background=color; p.style.transform=`translateY(0) rotate(${Math.random()*360}deg)`; p.style.animationDuration=d+'s';
         p.style.width=(6+Math.random()*8)+'px'; p.style.height=(8+Math.random()*16)+'px'; p.style.animationTimingFunction='cubic-bezier(.12,.4,.29,.99)';
         wrap.appendChild(p); setTimeout(()=>p.remove(), d*1000);
@@ -418,19 +449,66 @@ ${de}`;
     qs('#firma').textContent=de; qs('#btn-confetti').onclick=confetti;
     window.addEventListener('keydown',e=>{ if(e.key==='♥' || e.key==='c') confetti(); });
 
-    // cuenta regresiva
-    const countBox=qs('#count'); let timerCount=null;
-    function renderCount(t){
-      function pad(n){return String(n).padStart(2,'0')}
-      const now=new Date(); const diff=t-now;
-      if(diff<=0){ countBox.innerHTML='<div class="muted">¡Es hoy! 💖</div>'; if(navigator.vibrate) navigator.vibrate([120,80,120]); clearInterval(timerCount); return; }
-      const s=Math.floor(diff/1000); const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), ss=s%60;
-      countBox.innerHTML=''; [['Días',d],['Horas',h],['Min',m],['Seg',ss]].forEach(([k,v])=>{ const c=document.createElement('div'); c.className='chip'; c.innerHTML=`<strong>${pad(v)}</strong>${k}`; countBox.appendChild(c); });
+    // ======= Cuenta regresiva (con hora visible y compartible) =======
+    const countBox=qs('#count'); const targetInfo=qs('#target-info'); let timerCount=null;
+
+    function pad(n){return String(n).padStart(2,'0')}
+    function formatFechaBonita(dt){
+      const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      return `${dias[dt.getDay()]}, ${dt.getDate()} de ${meses[dt.getMonth()]} de ${dt.getFullYear()} · ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
     }
-    function startCount(){ const val=qs('#fecha').value; if(!val){ alert('Elige fecha y hora'); return; } const t=new Date(val); localStorage.setItem('proxima',t.toISOString()); clearInterval(timerCount); renderCount(t); timerCount=setInterval(()=>renderCount(t),1000); }
-    qs('#btn-start').onclick=startCount;
-    qs('#btn-clear').onclick=()=>{ localStorage.removeItem('proxima'); clearInterval(timerCount); countBox.innerHTML=''; qs('#fecha').value=''; };
-    const saved=localStorage.getItem('proxima'); if(saved){ const t=new Date(saved); qs('#fecha').value=t.toISOString().slice(0,16); startCount(); }
+    function renderCount(t){
+      const now=new Date(); const diff=t-now;
+      if(diff<=0){
+        countBox.innerHTML='<div class="muted">¡Es hoy! 💖</div>';
+        targetInfo.textContent = `Próxima cita: ${formatFechaBonita(t)}`;
+        if(navigator.vibrate) navigator.vibrate([120,80,120]);
+        clearInterval(timerCount);
+        return;
+      }
+      const s=Math.floor(diff/1000); const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), ss=s%60;
+      countBox.innerHTML='';
+      [['Días',d],['Horas',h],['Min',m],['Seg',ss]].forEach(([k,v])=>{
+        const c=document.createElement('div'); c.className='chip'; c.innerHTML=`<strong>${pad(v)}</strong>${k}`; countBox.appendChild(c);
+      });
+      targetInfo.textContent = `Próxima cita: ${formatFechaBonita(t)}`;
+    }
+
+    function startCount(fromInput=true){
+      let val;
+      if(fromInput){
+        val = qs('#fecha').value; // cadena local "YYYY-MM-DDTHH:mm"
+        if(!val){ alert('Elige fecha y hora'); return; }
+        localStorage.setItem('proxima_local', val); // guardamos la cadena local tal cual
+      }else{
+        val = localStorage.getItem('proxima_local');
+        if(!val) return;
+      }
+      const t = new Date(val); // sin "Z" => hora local exacta
+      clearInterval(timerCount);
+      renderCount(t);
+      timerCount=setInterval(()=>renderCount(t),1000);
+    }
+
+    qs('#btn-start').onclick=()=>startCount(true);
+    qs('#btn-clear').onclick=()=>{ localStorage.removeItem('proxima_local'); clearInterval(timerCount); countBox.innerHTML=''; targetInfo.textContent=''; qs('#fecha').value=''; };
+
+    // Al cargar: usa ?cita=... si viene en la URL (para que tu pareja vea la hora), si no, localStorage
+    const citaParam = params.get('cita');
+    if(citaParam){
+      try{
+        qs('#fecha').value = citaParam.slice(0,16);
+        localStorage.setItem('proxima_local', citaParam);
+        startCount(false);
+      }catch{}
+    }else{
+      const savedLocal = localStorage.getItem('proxima_local');
+      if(savedLocal){
+        qs('#fecha').value = savedLocal.slice(0,16);
+        startCount(false);
+      }
+    }
 
     // focus
     qsa('button, input').forEach(el=>{ el.addEventListener('focus',()=>el.style.outline='2px solid var(--accent)'); el.addEventListener('blur',()=>el.style.outline='none'); });
@@ -439,12 +517,16 @@ ${de}`;
     const dlgAj=qs('#dlg-ajustes');
     qs('#btn-ajustes').onclick=()=>{ qs('#inp-para').value=nombre; qs('#inp-de').value=de; qs('#inp-musica').value=musicaURL||''; dlgAj.showModal(); };
     qs('#aj-cancel').onclick=()=>dlgAj.close();
-    qs'#aj-guardar'?.onclick=()=>{ const n=qs('#inp-para').value.trim()||'Ti'; const d=qs('#inp-de').value.trim()||'mí'; const m=qs('#inp-musica').value.trim();
-      localStorage.setItem('para',n); localStorage.setItem('de',d); if(m){ localStorage.setItem('musica',m);} else { localStorage.removeItem('musica'); }
+    qs('#aj-guardar').onclick=()=>{ 
+      const n=qs('#inp-para').value.trim()||'Ti'; 
+      const d=qs('#inp-de').value.trim()||'mí'; 
+      const m=qs('#inp-musica').value.trim();
+      localStorage.setItem('para',n); localStorage.setItem('de',d); 
+      if(m){ localStorage.setItem('musica',m);} else { localStorage.removeItem('musica'); }
       location.search=`?para=${encodeURIComponent(n)}&de=${encodeURIComponent(d)}${m?`&musica=${encodeURIComponent(m)}`:''}`;
     };
 
-    // Service Worker
+    // Service Worker (opcional; si no existe sw.js, no pasa nada)
     if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
   </script>
 </body>
