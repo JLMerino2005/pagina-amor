@@ -52,7 +52,6 @@
     .btn{padding:12px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#1b1b27;color:#fff;cursor:pointer}
     .btn.primary{background:linear-gradient(135deg,var(--brand),#ff7aa5);border-color:#ff9ec3;color:#12121b;box-shadow:var(--glow)}
 
-    /* floating hearts */
     .floaters{position:relative;min-height:260px;overflow:hidden;border-radius:var(--radius)}
     .floater{position:absolute;bottom:-40px;font-size:18px;animation:rise var(--d) linear infinite;opacity:.85;filter:drop-shadow(0 6px 10px rgba(255,77,141,.25))}
     @keyframes rise{from{transform:translateY(40px)}to{transform:translateY(-320px) rotate(20deg)}}
@@ -61,12 +60,10 @@
     h2{margin:0 0 10px}
     .muted{color:var(--muted)}
 
-    /* carta */
     .type{min-height:120px;white-space:pre-wrap}
     .cursor{display:inline-block;width:10px;background:#ff8fb4;margin-left:2px;animation:blink 1s steps(2,end) infinite}
     @keyframes blink{50%{background:transparent}}
 
-    /* motivos */
     .grid{display:grid;gap:14px}
     .grid.m3{grid-template-columns:repeat(3,1fr)}
     .grid.m2{grid-template-columns:repeat(2,1fr)}
@@ -74,13 +71,11 @@
     @media (max-width:620px){.grid.m2,.grid.m3{grid-template-columns:1fr}}
     .reason{padding:16px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 
-    /* timeline */
     .timeline{position:relative;padding-left:18px}
     .timeline::before{content:"";position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(var(--brand),transparent)}
     .step{position:relative;margin:16px 0;padding-left:8px}
     .dot{position:absolute;left:-2px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px rgba(255,77,141,.15)}
 
-    /* galería */
     .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     @media (max-width:800px){.gallery{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:520px){.gallery{grid-template-columns:1fr}}
@@ -92,18 +87,15 @@
     dialog::backdrop{background:rgba(0,0,0,.6)}
     .full img{max-width:92vw;max-height:80vh;border-radius:14px}
 
-    /* quiz */
     .q{margin:10px 0;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
     .q label{display:block;margin:6px 0;cursor:pointer}
     .q input{margin-right:8px}
 
-    /* countdown */
     .count{display:flex;gap:10px;flex-wrap:wrap}
     .chip{min-width:110px;text-align:center;padding:12px;border-radius:14px;background:#1b1b27;border:1px solid rgba(255,255,255,.08)}
     .chip strong{display:block;font-size:24px}
 
     .target{margin-top:8px}
-    /* confetti */
     .hidden{display:none !important}
     .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
     .piece{position:absolute;width:10px;height:16px;opacity:.9;animation:fall linear forwards}
@@ -124,6 +116,34 @@
   </style>
 </head>
 <body>
+
+  <!-- 🔧 Hard refresh: limpia SW+caches y recarga una vez con ?v= -->
+  <script>
+  const APP_VERSION = '13';
+  (async () => {
+    try {
+      const prev = localStorage.getItem('app_version');
+      if (prev !== APP_VERSION) {
+        if ('caches' in window) {
+          for (const k of await caches.keys()) await caches.delete(k);
+        }
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs) await r.unregister();
+        }
+        localStorage.setItem('app_version', APP_VERSION);
+        const sep = location.search ? '&' : '?';
+        location.replace(location.pathname + location.search + sep + 'v=' + APP_VERSION);
+      } else {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+          navigator.serviceWorker.getRegistration().then(r => r?.update?.());
+        }
+      }
+    } catch (e) { console.warn('No se pudo forzar refresh:', e); }
+  })();
+  </script>
+
   <header>
     <div class="wrap nav">
       <div class="brand"><div class="heart" aria-hidden="true"></div><div class="title">Para <span id="nombre-dest">Ti</span> 💖</div></div>
@@ -294,7 +314,7 @@
       u.searchParams.set('de', de);
       if(musicaURL) u.searchParams.set('musica', musicaURL);
       const citaLocal = localStorage.getItem('proxima_local');
-      if(citaLocal) u.searchParams.set('cita', citaLocal); // <-- esto hace que en el cel de tu pareja aparezca la hora/fecha
+      if(citaLocal) u.searchParams.set('cita', citaLocal);
       return u.toString();
     }
     async function copiar(texto){
@@ -337,17 +357,7 @@ ${de}`;
     escribir(); qs('#btn-replay').onclick=escribir;
 
     // motivos
-    const MOTIVOS=[
-      ['Tu risa','Porque incluso a distancia me alegra el día.'],
-      ['Tu mirada','Me da paz y me recuerda por qué vale la pena todo.'],
-      ['Tus mensajes','Nunca llegan tarde, siempre llegan cuando más los necesito.'],
-      ['Cómo me escuchas','Siento que soy visto y entendido por ti.'],
-      ['Tus abrazos','Ahí cabe el mundo y me siento en casa.'],
-      ['Nuestros planes','Desde lo pequeño hasta lo grande, contigo todo es especial.'],
-      ['Tu fuerza','Me inspiras a ser mejor todos los días.'],
-      ['Tu paciencia','Gracias por quedarte incluso cuando el camino se pone difícil.'],
-      ['Nosotros','Porque lo nuestro es equipo, compañía y amor.']
-    ];
+    const MOTIVOS=[['Tu risa','Porque incluso a distancia me alegra el día.'],['Tu mirada','Me da paz y me recuerda por qué vale la pena todo.'],['Tus mensajes','Nunca llegan tarde, siempre llegan cuando más los necesito.'],['Cómo me escuchas','Siento que soy visto y entendido por ti.'],['Tus abrazos','Ahí cabe el mundo y me siento en casa.'],['Nuestros planes','Desde lo pequeño hasta lo grande, contigo todo es especial.'],['Tu fuerza','Me inspiras a ser mejor todos los días.'],['Tu paciencia','Gracias por quedarte incluso cuando el camino se pone difícil.'],['Nosotros','Porque lo nuestro es equipo, compañía y amor.']];
     const reasons=qs('#reasons'); MOTIVOS.forEach(([t,d])=>{ const c=document.createElement('div'); c.className='reason'; c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`; reasons.appendChild(c); });
 
     // timeline
@@ -355,7 +365,6 @@ ${de}`;
     const tl=qs('#timeline'); MOMENTOS.forEach(([t,d])=>{ const s=document.createElement('div'); s.className='step'; s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`; tl.appendChild(s); });
 
     // ========= GALERÍA ROBUSTA =========
-    // Cambia estos "base" por tus nombres de archivo (sin extensión).
     const IMAGENES_META = [
       { base: ['numero1'],              alt: '95, siempre serás mi número 1' },
       { base: ['nina-bebe'],            alt: 'Foto de bebé' },
@@ -372,7 +381,7 @@ ${de}`;
       { base: ['selfie-sonrisa'],       alt: 'Selfie sonriente' }
     ];
     const EXTS = ['.jpg','.jpeg','.png','.JPG','.JPEG','.PNG'];
-    const VERSION='v10'; // súbelo si cambias imágenes para forzar recarga
+    const VERSION='v10';
     const gal=qs('#gal');
     const RESUELTAS = new Array(IMAGENES_META.length).fill(null);
 
@@ -449,9 +458,8 @@ ${de}`;
     qs('#firma').textContent=de; qs('#btn-confetti').onclick=confetti;
     window.addEventListener('keydown',e=>{ if(e.key==='♥' || e.key==='c') confetti(); });
 
-    // ======= Cuenta regresiva (con hora visible y compartible) =======
+    // ======= Cuenta regresiva (hora visible y compartible) =======
     const countBox=qs('#count'); const targetInfo=qs('#target-info'); let timerCount=null;
-
     function pad(n){return String(n).padStart(2,'0')}
     function formatFechaBonita(dt){
       const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -474,40 +482,29 @@ ${de}`;
       });
       targetInfo.textContent = `Próxima cita: ${formatFechaBonita(t)}`;
     }
-
     function startCount(fromInput=true){
       let val;
       if(fromInput){
-        val = qs('#fecha').value; // cadena local "YYYY-MM-DDTHH:mm"
+        val = qs('#fecha').value;
         if(!val){ alert('Elige fecha y hora'); return; }
-        localStorage.setItem('proxima_local', val); // guardamos la cadena local tal cual
+        localStorage.setItem('proxima_local', val);
       }else{
         val = localStorage.getItem('proxima_local');
         if(!val) return;
       }
-      const t = new Date(val); // sin "Z" => hora local exacta
+      const t = new Date(val);
       clearInterval(timerCount);
       renderCount(t);
       timerCount=setInterval(()=>renderCount(t),1000);
     }
-
     qs('#btn-start').onclick=()=>startCount(true);
     qs('#btn-clear').onclick=()=>{ localStorage.removeItem('proxima_local'); clearInterval(timerCount); countBox.innerHTML=''; targetInfo.textContent=''; qs('#fecha').value=''; };
-
-    // Al cargar: usa ?cita=... si viene en la URL (para que tu pareja vea la hora), si no, localStorage
     const citaParam = params.get('cita');
     if(citaParam){
-      try{
-        qs('#fecha').value = citaParam.slice(0,16);
-        localStorage.setItem('proxima_local', citaParam);
-        startCount(false);
-      }catch{}
+      try{ qs('#fecha').value = citaParam.slice(0,16); localStorage.setItem('proxima_local', citaParam); startCount(false);}catch{}
     }else{
       const savedLocal = localStorage.getItem('proxima_local');
-      if(savedLocal){
-        qs('#fecha').value = savedLocal.slice(0,16);
-        startCount(false);
-      }
+      if(savedLocal){ qs('#fecha').value = savedLocal.slice(0,16); startCount(false); }
     }
 
     // focus
@@ -526,8 +523,25 @@ ${de}`;
       location.search=`?para=${encodeURIComponent(n)}&de=${encodeURIComponent(d)}${m?`&musica=${encodeURIComponent(m)}`:''}`;
     };
 
-    // Service Worker (opcional; si no existe sw.js, no pasa nada)
-    if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+    // ===== Service Worker con auto-update =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('./sw.js');
+          navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+          if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+          reg.onupdatefound = () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.onstatechange = () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                nw.postMessage('SKIP_WAITING');
+              }
+            };
+          };
+        } catch {}
+      });
+    }
   </script>
 </body>
 </html>
