@@ -1,28 +1,96 @@
-const CACHE = 'para-ti-v1';
-const ASSETS = [
+const CACHE = 'para-ti-v2'; // súbelo cuando cambies archivos
+const CORE_ASSETS = [
   './',
   './index.html',
-  './manifest.webmanifest'
-  // Si usas imágenes locales, agrégalas aquí para cachearlas
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-192-maskable.png',
+  './icon-512-maskable.png'
+  // Agrega aquí recursos locales adicionales que quieras siempre offline
+  // p.ej.: 'img/numero1.jpg', 'img/nina-bebe.jpg', etc.
 ];
 
-self.addEventListener('install', e=>{
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
+// Instalar: precache núcleo
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(CORE_ASSETS))
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e=>{
-  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>k!==CACHE && caches.delete(k)))));
-  self.clients.claim();
+// Activar: limpiar caches viejos
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => k !== CACHE && caches.delete(k)));
+      // Opcional: habilitar navigation preload
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+      await self.clients.claim();
+    })()
+  );
 });
 
-self.addEventListener('fetch', e=>{
-  const req = e.request;
-  e.respondWith(
-    caches.match(req).then(res=> res || fetch(req).then(r=>{
-      const copy = r.clone();
-      caches.open(CACHE).then(c=>c.put(req, copy));
-      return r;
-    }).catch(()=>caches.match('./')))
-  );
+// Helpers de estrategia
+async function cacheFirst(req) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  const res = await fetch(req);
+  cache.put(req, res.clone());
+  return res;
+}
+
+async function staleWhileRevalidate(req) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(req);
+  const networkPromise = fetch(req).then((res) => {
+    cache.put(req, res.clone());
+    return res;
+  }).catch(() => cached || caches.match('./'));
+  return cached || networkPromise;
+}
+
+async function networkFirst(req) {
+  const cache = await caches.open(CACHE);
+  try {
+    const res = await fetch(req);
+    cache.put(req, res.clone());
+    return res;
+  } catch (e) {
+    return (await cache.match(req)) || (await caches.match('./'));
+  }
+}
+
+// Fetch: HTML (navigate) -> networkFirst con fallback; estáticos same-origin -> SWR; imágenes -> cacheFirst
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
+
+  // Navegaciones (HTML)
+  if (req.mode === 'navigate') {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+
+  // Solo manejamos same-origin en caché (evita ruido de terceros)
+  if (!sameOrigin) return;
+
+  // Imágenes locales
+  if (url.pathname.startsWith('/img/') || url.pathname.includes('/img/')) {
+    event.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // Resto de recursos estáticos same-origin
+  event.respondWith(staleWhileRevalidate(req));
+});
+
+// Recibir mensaje para forzar activación inmediata
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
