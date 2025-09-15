@@ -1,5 +1,5 @@
 // sw.js
-const CACHE = 'para-ti-v5'; // ⬅️ súbelo cuando cambies archivos
+const CACHE = 'para-ti-v8'; // bump para invalidar caché anterior
 
 const CORE_ASSETS = [
   './',
@@ -9,7 +9,6 @@ const CORE_ASSETS = [
   './icon-512.png',
   './icon-192-maskable.png',
   './icon-512-maskable.png'
-  // agrega aquí imágenes locales si quieres que estén offline
 ];
 
 self.addEventListener('install', (event) => {
@@ -28,7 +27,6 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// Estrategias
 async function cacheFirst(req) {
   const cache = await caches.open(CACHE);
   const hit = await cache.match(req);
@@ -55,31 +53,24 @@ async function networkFirst(req) {
   }
 }
 
-// Ruteo
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
 
-  // Navegaciones (HTML): network-first
   if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(networkFirst(req));
     return;
   }
+  if (!sameOrigin) return;
 
-  if (!sameOrigin) return; // sólo cache same-origin
-
-  // Imágenes locales
   if (url.pathname.includes('/img/')) {
     event.respondWith(cacheFirst(req));
     return;
   }
-
-  // Resto de estáticos same-origin
   event.respondWith(staleWhileRevalidate(req));
 });
 
-// Mensaje para activar inmediatamente
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

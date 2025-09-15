@@ -87,15 +87,12 @@
     dialog::backdrop{background:rgba(0,0,0,.6)}
     .full img{max-width:92vw;max-height:80vh;border-radius:14px}
 
-    .q{margin:10px 0;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
-    .q label{display:block;margin:6px 0;cursor:pointer}
-    .q input{margin-right:8px}
+    /* Palabras */
+    .palabras-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .burbujas{display:flex;flex-wrap:wrap;gap:8px}
+    .burbuja{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:inline-flex;gap:8px;align-items:center;transform:rotate(var(--rot,0deg))}
+    .burbuja .x{border:none;background:transparent;color:#ffafcc;cursor:pointer}
 
-    .count{display:flex;gap:10px;flex-wrap:wrap}
-    .chip{min-width:110px;text-align:center;padding:12px;border-radius:14px;background:#1b1b27;border:1px solid rgba(255,255,255,.08)}
-    .chip strong{display:block;font-size:24px}
-
-    .target{margin-top:8px}
     .hidden{display:none !important}
     .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
     .piece{position:absolute;width:10px;height:16px;opacity:.9;animation:fall linear forwards}
@@ -117,20 +114,15 @@
 </head>
 <body>
 
-  <!-- 🔧 Hard refresh: limpia SW+caches y recarga una vez con ?v= -->
+  <!-- Hard refresh -->
   <script>
-  const APP_VERSION = '13';
+  const APP_VERSION = '23';
   (async () => {
     try {
       const prev = localStorage.getItem('app_version');
       if (prev !== APP_VERSION) {
-        if ('caches' in window) {
-          for (const k of await caches.keys()) await caches.delete(k);
-        }
-        if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          for (const r of regs) await r.unregister();
-        }
+        if ('caches' in window) { for (const k of await caches.keys()) await caches.delete(k); }
+        if ('serviceWorker' in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister(); }
         localStorage.setItem('app_version', APP_VERSION);
         const sep = location.search ? '&' : '?';
         location.replace(location.pathname + location.search + sep + 'v=' + APP_VERSION);
@@ -140,7 +132,7 @@
           navigator.serviceWorker.getRegistration().then(r => r?.update?.());
         }
       }
-    } catch (e) { console.warn('No se pudo forzar refresh:', e); }
+    } catch (e) {}
   })();
   </script>
 
@@ -152,8 +144,8 @@
         <button class="tab" data-go="#motivos">Motivos</button>
         <button class="tab" data-go="#momentos">Momentos</button>
         <button class="tab" data-go="#galeria">Galería</button>
-        <button class="tab" data-go="#juego">Juego</button>
-        <button class="tab" data-go="#cuenta">Próxima cita</button>
+        <button class="tab" data-go="#ruleta">Ruleta</button>
+        <button class="tab" data-go="#palabras">Palabras</button>
       </nav>
     </div>
   </header>
@@ -167,7 +159,7 @@
         <div class="cta">
           <button class="btn primary" id="btn-scroll">Léela ahora</button>
           <button class="btn" id="btn-compartir">Compartir</button>
-          <button class="btn" id="btn-ajustes">Editar nombres/música</button>
+          <button class="btn" id="btn-ajustes">Editar nombres</button>
         </div>
       </div>
       <div class="card floaters" aria-hidden="true" id="floaters"></div>
@@ -176,8 +168,6 @@
     <!-- CARTA -->
     <section id="carta" class="card">
       <h2>💌 Carta</h2>
-      <p class="muted">(Tip: baja el volumen de tu celular y dale play si quieres música de fondo)</p>
-      <audio id="musica" controls preload="none" style="width:100%"></audio>
       <div class="type" id="type" aria-live="polite"></div><span class="cursor" id="cursor"></span>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn" id="btn-replay">Repetir carta</button>
@@ -187,7 +177,7 @@
 
     <!-- MOTIVOS -->
     <section id="motivos" class="card">
-      <h2>🌟 9 cosas que amo de ti</h2>
+      <h2>🌟 Cosas que amo de ti</h2>
       <div class="grid m3" id="reasons"></div>
     </section>
 
@@ -212,34 +202,28 @@
       </dialog>
     </section>
 
-    <!-- JUEGO -->
-    <section id="juego" class="card">
-      <h2>🎮 Mini juego: ¿cuánto me conoces?</h2>
-      <div id="quiz"></div>
-      <button class="btn primary" id="btn-quiz">Enviar respuestas</button>
-      <p id="quiz-res" class="muted"></p>
-      <div id="sorpresa" class="hidden">
-        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:16px 0">
-        <h3>🎁 Sorpresa desbloqueada</h3>
-        <p class="muted">Abriste mi corazón. Presiona el botón para ver la magia ✨</p>
-        <button class="btn primary" id="btn-confetti" aria-label="Lanzar confeti">¡Celebrar!</button>
-        <div class="card" style="margin-top:12px">
-          <h3>💖 Carta final</h3>
-          <p id="carta-final">Gracias por existir. Mi plan favorito siempre será <strong>contigo</strong>. Vamos por todo lo bonito que nos falta vivir. — <span id="firma"></span></p>
-        </div>
+    <!-- RULETA -->
+    <section id="ruleta" class="card">
+      <h2>🎡 Ruleta de cumplidos</h2>
+      <p id="cumplido" class="muted">Pulsa “Girar” para descubrir un cumplido 💞</p>
+      <div class="cta">
+        <button class="btn primary" id="btn-ruleta">Girar</button>
+        <button class="btn" id="btn-reset-ruleta">Reiniciar</button>
       </div>
+      <small class="muted">No se repiten hasta mostrar todos. Se guarda tu progreso.</small>
     </section>
 
-    <!-- CUENTA REGRESIVA -->
-    <section id="cuenta" class="card">
-      <h2>⏳ Cuenta regresiva para nuestra próxima cita</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <input id="fecha" type="datetime-local" class="btn" style="padding:10px" />
-        <button class="btn" id="btn-start">Iniciar</button>
-        <button class="btn" id="btn-clear">Limpiar</button>
+    <!-- PALABRAS -->
+    <section id="palabras" class="card">
+      <h2>💬 Palabras que te describen</h2>
+      <div class="palabras-form">
+        <input id="palabra-text" class="btn" type="text" placeholder="Ej. Valiente, brillante, dulce..." />
+        <button class="btn primary" id="palabra-add">Agregar</button>
+        <button class="btn" id="palabra-sugerir">Sugerir 5</button>
+        <button class="btn" id="palabra-clear">Limpiar todo</button>
       </div>
-      <div class="count" id="count"></div>
-      <div id="target-info" class="muted target"></div>
+      <div id="burbujas" class="burbujas"></div>
+      <small class="muted">Consejo: agrega adjetivos o apodos bonitos. Toca la ✕ para borrar alguno.</small>
     </section>
 
     <footer>
@@ -255,7 +239,6 @@
       <h3>Personalizar 💖</h3>
       <label>Para: <input id="inp-para" class="btn" style="width:100%;margin-top:6px"></label>
       <label style="margin-top:10px">De: <input id="inp-de" class="btn" style="width:100%;margin-top:6px"></label>
-      <label style="margin-top:10px">Música (URL): <input id="inp-musica" class="btn" style="width:100%;margin-top:6px" placeholder="https://...mp3"></label>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
         <button class="btn" id="aj-cancel">Cancelar</button>
         <button class="btn primary" id="aj-guardar">Guardar</button>
@@ -269,16 +252,11 @@
     const qsa=(s,p=document)=>[...p.querySelectorAll(s)];
     const params=new URLSearchParams(location.search);
 
-    // Nombres y música
+    // Nombres
     const nombre = params.get('para') || localStorage.getItem('para') || 'Ti';
     const de = params.get('de') || localStorage.getItem('de') || 'mí';
-    const musicaParam = params.get('musica');
-    const musicaSaved = localStorage.getItem('musica') || '';
-    const musicaURL = typeof musicaParam === 'string' && musicaParam.length ? musicaParam : musicaSaved;
-
     localStorage.setItem('para', nombre);
     localStorage.setItem('de', de);
-    if(musicaURL) localStorage.setItem('musica', musicaURL);
 
     // header + hero
     qs('#nombre-dest').textContent = nombre;
@@ -307,14 +285,11 @@
     }));
     qs('#btn-scroll').onclick=()=>document.querySelector('#carta').scrollIntoView({behavior:'smooth'});
 
-    // compartir (incluye la cita si existe)
+    // compartir
     function linkConNombre(){
       const u=new URL(location.href);
       u.searchParams.set('para', nombre);
       u.searchParams.set('de', de);
-      if(musicaURL) u.searchParams.set('musica', musicaURL);
-      const citaLocal = localStorage.getItem('proxima_local');
-      if(citaLocal) u.searchParams.set('cita', citaLocal);
       return u.toString();
     }
     async function copiar(texto){
@@ -336,15 +311,20 @@
     };
     qs('#copylink').onclick=(e)=>{e.preventDefault(); copiar(location.href)};
 
-    // música
-    const audio=qs('#musica'); if(musicaURL){ audio.src=musicaURL; }
-
-    // carta tipeada
+    // CARTA (con tus recuerdos)
     const textoCarta = `Hola ${nombre}:
 
-Solo quería recordarte que eres mi lugar seguro, mi risa favorita y mi coincidencia más bonita. Gracias por acompañarme en todo, por tu paciencia, por tus abrazos que arreglan mis días y por creer en nosotros.
+Hoy me detuve a pensar en nosotros y en todo lo que hemos vivido. En cómo un “hola” sencillo se volvió el inicio de una historia que me hace sonreír incluso en los días difíciles. Me gusta la forma en la que llegas, sin ruido, y de pronto todo se siente más ligero. Me gusta cuando te ríes fuerte, cuando te quedas en silencio y también cuando me cuentas cualquier cosa aunque sea mínima; me gusta porque eres tú.
 
-Prometo seguir eligiéndote en lo cotidiano: en los mensajitos, en las llamadas de “ya llegué”, en los planes locos y también en los domingos de flojera. Eres mi hogar.
+Gracias por la paciencia y por los detalles pequeños: los mensajes de buenos días, las llamadas de “ya llegué”, las fotos tontas y los abrazos que arreglan semanas enteras. Gracias por creer en lo que somos y por cuidarlo con tanto cariño. A tu lado aprendí que el amor también es calma, equipo y ganas de construir poquito a poquito.
+
+Y me emocionan nuestros recuerdos: aquella vez que nos agarró la lluvia en la calle y terminamos riéndonos como niños, las salidas de compras que empiezan con “solo veremos” y acaban con bolsitas y anécdotas, nuestras idas por café donde el mundo se pausa un ratito, y las comidas juntos en las que el tiempo se nos va entre historias y miradas. Son momentos sencillos, pero contigo se vuelven mis favoritos.
+
+Quiero seguir eligiéndote en lo cotidiano: en las caminatas sin prisa, en las películas que no terminamos porque nos gana la plática, en los planes locos que inventamos y en los domingos de flojera que se sienten a hogar. Quiero estar en tus metas y en tus victorias, pero también sostenerte cuando te canses; prometo celebrar tus logros como míos y recordarte lo valiosa que eres cuando a ti se te olvide.
+
+Sueño con lo que viene: con viajes, con fotos nuevas, con una casa que huela a risa, con nuestro “para siempre” hecho de momentos simples. No necesito promesas perfectas; me basta con seguir tomándote la mano y decirte cada día que aquí estoy, que te elijo y que contigo me quedo.
+
+Gracias por existir y por enseñarme un amor bonito, paciente y verdadero. Eres mi coincidencia más preciosa, mi risa favorita y el lugar donde me siento en casa.
 
 Con amor,
 ${de}`;
@@ -356,15 +336,58 @@ ${de}`;
     }
     escribir(); qs('#btn-replay').onclick=escribir;
 
-    // motivos
-    const MOTIVOS=[['Tu risa','Porque incluso a distancia me alegra el día.'],['Tu mirada','Me da paz y me recuerda por qué vale la pena todo.'],['Tus mensajes','Nunca llegan tarde, siempre llegan cuando más los necesito.'],['Cómo me escuchas','Siento que soy visto y entendido por ti.'],['Tus abrazos','Ahí cabe el mundo y me siento en casa.'],['Nuestros planes','Desde lo pequeño hasta lo grande, contigo todo es especial.'],['Tu fuerza','Me inspiras a ser mejor todos los días.'],['Tu paciencia','Gracias por quedarte incluso cuando el camino se pone difícil.'],['Nosotros','Porque lo nuestro es equipo, compañía y amor.']];
-    const reasons=qs('#reasons'); MOTIVOS.forEach(([t,d])=>{ const c=document.createElement('div'); c.className='reason'; c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`; reasons.appendChild(c); });
+    // MOTIVOS (18)
+    const MOTIVOS=[
+      ['Tu risa','Me alegra el día sin importar nada.'],
+      ['Tu mirada','Me da paz y me recuerda por qué vale la pena todo.'],
+      ['Cómo me escuchas','Siento que soy visto y entendido por ti.'],
+      ['Tus abrazos','Ahí cabe el mundo y me siento en casa.'],
+      ['Tu inteligencia','Admiro tu forma de resolver y aprender.'],
+      ['Tu paciencia','Gracias por quedarte incluso cuando el camino se pone difícil.'],
+      ['Tu sentido del humor','Haces más ligeros los días pesados.'],
+      ['Tu manera de bailar','Hasta una canción tonta se vuelve especial.'],
+      ['Tu aroma','Huele a hogar.'],
+      ['Tu responsabilidad','Cumples, cuidas y das tu mejor versión.'],
+      ['Cómo cuidas a tu familia','Me enseña el tamaño de tu corazón.'],
+      ['Tu fortaleza','Te caes, te levantas y sigues brillando.'],
+      ['Tu creatividad','Siempre encuentras formas bonitas de sorprenderme.'],
+      ['Tus mensajes','Llegan justo cuando los necesito.'],
+      ['Cómo me motivas','Contigo creo más en mí.'],
+      ['Nuestros planes','Desde lo pequeño hasta lo grande, contigo todo es especial.'],
+      ['Nuestros silencios','También hablan de amor.'],
+      ['Nosotros','Porque lo nuestro es equipo, compañía y amor.']
+    ];
+    const reasons=qs('#reasons');
+    MOTIVOS.forEach(([t,d])=>{
+      const c=document.createElement('div');
+      c.className='reason';
+      c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`;
+      reasons.appendChild(c);
+    });
 
-    // timeline
-    const MOMENTOS=[['El inicio','Ese día que empezamos a hablarnos diferente'],['La primera salida','Las mariposas confirmaron lo que ya sabíamos'],['Nuestro futuro','Lo bonito que estamos construyendo juntos']];
-    const tl=qs('#timeline'); MOMENTOS.forEach(([t,d])=>{ const s=document.createElement('div'); s.className='step'; s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`; tl.appendChild(s); });
+    // MOMENTOS (incluye lluvia, compras, café y comida juntos)
+    const MOMENTOS=[
+      ['Nos vimos por primera vez','Y el mundo hizo un ruidito de “clic”.'],
+      ['Primer mensaje largo','La conversación que no queríamos que termine.'],
+      ['Primera llamada hasta dormirnos','Descubrimos que las madrugadas también son nuestras.'],
+      ['La lluvia que nos sorprendió','Acabamos empapados y riendo como niños.'],
+      ['De compras “solo a ver”','Y volvimos con bolsitas y mil anécdotas.'],
+      ['Nuestro café favorito','Un ratito en pausa para los dos.'],
+      ['Comer juntos','Plática, miradas y un montón de ganas de quedarnos.'],
+      ['La primera salida','Las mariposas confirmaron lo que ya sabíamos.'],
+      ['Nuestro lugar favorito','Ese sitio que ahora se siente como casa.'],
+      ['Plan improvisado perfecto','Porque lo inesperado contigo siempre sale bien.'],
+      ['Nuestro futuro','Lo bonito que estamos construyendo juntos.']
+    ];
+    const tl=qs('#timeline');
+    MOMENTOS.forEach(([t,d])=>{
+      const s=document.createElement('div');
+      s.className='step';
+      s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`;
+      tl.appendChild(s);
+    });
 
-    // ========= GALERÍA ROBUSTA =========
+    // ========= GALERÍA =========
     const IMAGENES_META = [
       { base: ['numero1'],              alt: '95, siempre serás mi número 1' },
       { base: ['nina-bebe'],            alt: 'Foto de bebé' },
@@ -381,7 +404,7 @@ ${de}`;
       { base: ['selfie-sonrisa'],       alt: 'Selfie sonriente' }
     ];
     const EXTS = ['.jpg','.jpeg','.png','.JPG','.JPEG','.PNG'];
-    const VERSION='v10';
+    const VERSION='v13';
     const gal=qs('#gal');
     const RESUELTAS = new Array(IMAGENES_META.length).fill(null);
 
@@ -419,7 +442,6 @@ ${de}`;
             <div style="font-weight:600;color:#fecaca">No se pudo cargar</div>
             <div class="muted" style="font-size:12px;word-break:break-all">${tried.join('<br>')}</div>
           </div>`;
-          console.warn('Ninguna variante encontrada para:', base);
         }
       }
     })();
@@ -436,91 +458,109 @@ ${de}`;
     dlg.addEventListener('click',e=>{ if(e.target.tagName==='DIALOG') dlg.close(); });
     window.addEventListener('keydown',e=>{ if(!dlg.open) return; if(e.key==='ArrowRight') cambiarFoto(1); if(e.key==='ArrowLeft') cambiarFoto(-1); if(e.key==='Escape') dlg.close(); });
 
-    // quiz
-    const PREGUNTAS=[{t:`¿Mi plan perfecto contigo?`,o:['Cine y palomitas','Caminata y helado','Maratón de series','Viaje sorpresa'],ok:1},{t:`¿Mi apodo favorito para ti?`,o:['Amor','Vida','Chiquita/o','Mi persona'],ok:3},{t:`¿Canción que me recuerda a ti?`,o:['La que te haga sonreír','Cualquiera que bailemos','Nuestra playlist','Todas las anteriores'],ok:3}];
-    const qbox=qs('#quiz'); PREGUNTAS.forEach((q,qi)=>{ const d=document.createElement('div'); d.className='q'; d.innerHTML=`<div><strong>${qi+1}. ${q.t}</strong></div>`; q.o.forEach((op,oi)=>{ const lab=document.createElement('label'); lab.innerHTML=`<input type="radio" name="q${qi}" value="${oi}"> ${op}`; d.appendChild(lab); }); qbox.appendChild(d); });
-
+    // ========= Confetti =========
     function confetti(){
-      const wrap=qs('#confetti'); const colors=['#ff4d8d','#ffafcc','#7dd3fc','#a7f3d0','#fde68a'];
-      for(let i=0;i<160;i++){ const p=document.createElement('div'); p.className='piece'; const x=Math.random()*100; const d=6+Math.random()*5; const color=colors[i%colors.length];
-        p.style.left=x+'vw'; p.style.top='-5vh'; p.style.background=color; p.style.transform=`translateY(0) rotate(${Math.random()*360}deg)`; p.style.animationDuration=d+'s';
-        p.style.width=(6+Math.random()*8)+'px'; p.style.height=(8+Math.random()*16)+'px'; p.style.animationTimingFunction='cubic-bezier(.12,.4,.29,.99)';
+      const wrap=qs('#confetti');
+      const colors=['#ff4d8d','#ffafcc','#7dd3fc','#a7f3d0','#fde68a'];
+      for(let i=0;i<200;i++){
+        const p=document.createElement('div'); p.className='piece';
+        const x=Math.random()*100; const d=6+Math.random()*5; const color=colors[i%colors.length];
+        p.style.left=x+'vw'; p.style.top='-5vh'; p.style.background=color;
+        p.style.transform=`translateY(0) rotate(${Math.random()*360}deg)`; p.style.animationDuration=d+'s';
+        p.style.width=(6+Math.random()*8)+'px'; p.style.height=(8+Math.random()*16)+'px';
+        p.style.animationTimingFunction='cubic-bezier(.12,.4,.29,.99)';
         wrap.appendChild(p); setTimeout(()=>p.remove(), d*1000);
       }
     }
-    qs('#btn-quiz').onclick=()=>{ let score=0; let total=PREGUNTAS.length; let faltan=false;
-      PREGUNTAS.forEach((q,qi)=>{ const sel=qs(`input[name=q${qi}]:checked`); if(!sel){ faltan=true; return; } if(+sel.value===q.ok) score++; });
-      if(faltan){ qs('#quiz-res').textContent='Responde todas las preguntas 💡'; return; }
-      qs('#quiz-res').textContent=`Tu puntaje: ${score}/${total} ${score===total?'¡Perfecto! 💘':''}`;
-      if(score>=2) qs('#sorpresa').classList.remove('hidden');
-      if(score===total){ confetti(); setTimeout(confetti,800); }
-    };
-    qs('#firma').textContent=de; qs('#btn-confetti').onclick=confetti;
-    window.addEventListener('keydown',e=>{ if(e.key==='♥' || e.key==='c') confetti(); });
 
-    // ======= Cuenta regresiva (hora visible y compartible) =======
-    const countBox=qs('#count'); const targetInfo=qs('#target-info'); let timerCount=null;
-    function pad(n){return String(n).padStart(2,'0')}
-    function formatFechaBonita(dt){
-      const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-      const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-      return `${dias[dt.getDay()]}, ${dt.getDate()} de ${meses[dt.getMonth()]} de ${dt.getFullYear()} · ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-    }
-    function renderCount(t){
-      const now=new Date(); const diff=t-now;
-      if(diff<=0){
-        countBox.innerHTML='<div class="muted">¡Es hoy! 💖</div>';
-        targetInfo.textContent = `Próxima cita: ${formatFechaBonita(t)}`;
-        if(navigator.vibrate) navigator.vibrate([120,80,120]);
-        clearInterval(timerCount);
+    // ========= Ruleta de cumplidos =========
+    const CUMPLIDOS_KEY='ruleta_v2';
+    const CUMPLIDOS_BASE=[
+      'Tu sonrisa es mi lugar favorito.','Eres el mejor pedacito de mi día.','Tu voz me calma como nada más.',
+      'Me gusta quién soy cuando estoy contigo.','Tu risa me recuerda que todo estará bien.','Gracias por enseñarme un amor bonito.',
+      'Tus ojos tienen un brillo que no se apaga.','Eres magia en un mundo de prisa.','Todo es más fácil a tu lado.',
+      'Tus abrazos arreglan semanas enteras.','Me encanta cuando te emocionas por cosas pequeñas.','Eres paciente y dulce, una combinación perfecta.',
+      'Tu forma de pensar me inspira.','Admiro tu fuerza y tu corazón enorme.','Eres mi mensaje favorito del día.',
+      'Me haces creer en la suerte y en el destino.','Tu alegría es contagiosa.','Me encantan tus ocurrencias.',
+      'Tienes una luz única.','Me haces sentir en casa.','Eres mi persona para siempre.','Cada día contigo cuenta por dos.',
+      'Eres arte en movimiento.','Tu ternura me desarma.','Me encantan tus detalles inesperados.',
+      'Cuando me miras, todo se ordena.','Eres la parte favorita de mis planes.','Qué suerte la mía de coincidir contigo.',
+      'Te queda precioso ser tú.','Gracias por existir.'
+    ];
+    let restantes = JSON.parse(localStorage.getItem(CUMPLIDOS_KEY) || 'null');
+    if(!Array.isArray(restantes) || !restantes.length) restantes=[...CUMPLIDOS_BASE];
+
+    const out=qs('#cumplido');
+    qs('#btn-ruleta').onclick=()=>{
+      if(!restantes.length){
+        out.textContent='¡Se acabaron! Reinicia para volver a girar ✨';
         return;
       }
-      const s=Math.floor(diff/1000); const d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), ss=s%60;
-      countBox.innerHTML='';
-      [['Días',d],['Horas',h],['Min',m],['Seg',ss]].forEach(([k,v])=>{
-        const c=document.createElement('div'); c.className='chip'; c.innerHTML=`<strong>${pad(v)}</strong>${k}`; countBox.appendChild(c);
+      const i=Math.floor(Math.random()*restantes.length);
+      const txt=restantes.splice(i,1)[0];
+      localStorage.setItem(CUMPLIDOS_KEY, JSON.stringify(restantes));
+      out.textContent=txt;
+      confetti();
+    };
+    qs('#btn-reset-ruleta').onclick=()=>{
+      restantes=[...CUMPLIDOS_BASE];
+      localStorage.setItem(CUMPLIDOS_KEY, JSON.stringify(restantes));
+      out.textContent='Lista reiniciada. ¡Gira de nuevo! 💫';
+    };
+
+    // ========= Palabras que te describen =========
+    const PAL_KEY='palabras_v2';
+    let palabras = JSON.parse(localStorage.getItem(PAL_KEY) || '[]');
+    const cont=qs('#burbujas');
+    const SUGERENCIAS=['valiente','brillante','dulce','tierna','auténtica','creativa','paciente','soñadora','divertida','apasionada','generosa','detallista','luminosa','leal','sincera','encantadora','talentosa','resiliente','cariñosa','increíble','guapísima','admirable','mágica','única','tranquila','inteligente','chispita','mi persona'];
+
+    function savePal(){ localStorage.setItem(PAL_KEY, JSON.stringify(palabras)); }
+    function renderPal(){
+      cont.innerHTML='';
+      if(!palabras.length){ cont.innerHTML='<span class="muted">Aún no hay palabras. Agrega la primera ✨</span>'; return; }
+      palabras.forEach((txt,i)=>{
+        const b=document.createElement('span'); b.className='burbuja';
+        b.style.setProperty('--rot', (Math.random()*8-4)+'deg');
+        b.innerHTML = `${txt} <button class="x" title="Quitar" aria-label="Quitar">✕</button>`;
+        b.querySelector('.x').onclick=()=>{ palabras.splice(i,1); savePal(); renderPal(); };
+        cont.appendChild(b);
       });
-      targetInfo.textContent = `Próxima cita: ${formatFechaBonita(t)}`;
     }
-    function startCount(fromInput=true){
-      let val;
-      if(fromInput){
-        val = qs('#fecha').value;
-        if(!val){ alert('Elige fecha y hora'); return; }
-        localStorage.setItem('proxima_local', val);
-      }else{
-        val = localStorage.getItem('proxima_local');
-        if(!val) return;
+    renderPal();
+
+    qs('#palabra-add').onclick=()=>{
+      const t=qs('#palabra-text').value.trim();
+      if(!t) return alert('Escribe una palabra');
+      palabras.push(t);
+      qs('#palabra-text').value='';
+      savePal(); renderPal();
+    };
+    qs('#palabra-sugerir').onclick=()=>{
+      const pool=[...SUGERENCIAS].filter(x=>!palabras.includes(x));
+      for(let k=0;k<5 && pool.length;k++){
+        const i=Math.floor(Math.random()*pool.length);
+        palabras.push(pool.splice(i,1)[0]);
       }
-      const t = new Date(val);
-      clearInterval(timerCount);
-      renderCount(t);
-      timerCount=setInterval(()=>renderCount(t),1000);
-    }
-    qs('#btn-start').onclick=()=>startCount(true);
-    qs('#btn-clear').onclick=()=>{ localStorage.removeItem('proxima_local'); clearInterval(timerCount); countBox.innerHTML=''; targetInfo.textContent=''; qs('#fecha').value=''; };
-    const citaParam = params.get('cita');
-    if(citaParam){
-      try{ qs('#fecha').value = citaParam.slice(0,16); localStorage.setItem('proxima_local', citaParam); startCount(false);}catch{}
-    }else{
-      const savedLocal = localStorage.getItem('proxima_local');
-      if(savedLocal){ qs('#fecha').value = savedLocal.slice(0,16); startCount(false); }
-    }
+      savePal(); renderPal();
+    };
+    qs('#palabra-clear').onclick=()=>{
+      if(confirm('¿Vaciar todas las palabras?')){ palabras=[]; savePal(); renderPal(); }
+    };
 
     // focus
     qsa('button, input').forEach(el=>{ el.addEventListener('focus',()=>el.style.outline='2px solid var(--accent)'); el.addEventListener('blur',()=>el.style.outline='none'); });
 
     // Ajustes
     const dlgAj=qs('#dlg-ajustes');
-    qs('#btn-ajustes').onclick=()=>{ qs('#inp-para').value=nombre; qs('#inp-de').value=de; qs('#inp-musica').value=musicaURL||''; dlgAj.showModal(); };
+    qs('#btn-ajustes').onclick=()=>{ qs('#inp-para').value=nombre; qs('#inp-de').value=de; dlgAj.showModal(); };
     qs('#aj-cancel').onclick=()=>dlgAj.close();
     qs('#aj-guardar').onclick=()=>{ 
       const n=qs('#inp-para').value.trim()||'Ti'; 
       const d=qs('#inp-de').value.trim()||'mí'; 
-      const m=qs('#inp-musica').value.trim();
       localStorage.setItem('para',n); localStorage.setItem('de',d); 
-      if(m){ localStorage.setItem('musica',m);} else { localStorage.removeItem('musica'); }
-      location.search=`?para=${encodeURIComponent(n)}&de=${encodeURIComponent(d)}${m?`&musica=${encodeURIComponent(m)}`:''}`;
+      const u=new URL(location.href);
+      u.searchParams.set('para', n); u.searchParams.set('de', d);
+      location.search = u.search;
     };
 
     // ===== Service Worker con auto-update =====
