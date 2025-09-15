@@ -1,5 +1,5 @@
 // sw.js
-const CACHE = 'para-ti-v8'; // bump para invalidar caché anterior
+const CACHE = 'para-ti-v9'; // bump para invalidar caché anterior
 
 const CORE_ASSETS = [
   './',
@@ -35,6 +35,7 @@ async function cacheFirst(req) {
   cache.put(req, res.clone());
   return res;
 }
+
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(CACHE);
   const cached = await cache.match(req);
@@ -42,10 +43,13 @@ async function staleWhileRevalidate(req) {
     .catch(() => cached || caches.match('./'));
   return cached || net;
 }
+
 async function networkFirst(req) {
   const cache = await caches.open(CACHE);
   try {
-    const res = await fetch(req);
+    // Intenta usar navigationPreload si existe
+    const preload = await eventPreloadResponse();
+    const res = preload || await fetch(req);
     cache.put(req, res.clone());
     return res;
   } catch {
@@ -53,21 +57,40 @@ async function networkFirst(req) {
   }
 }
 
+// Obtiene la respuesta de navigationPreload si está disponible para esta navegación
+async function eventPreloadResponse() {
+  try {
+    // @ts-ignore
+    if (typeof navigationPreload !== 'undefined') {
+      // SW global no expone directamente el preload por evento aquí,
+      // así que devolvemos null y dejamos que networkFirst haga fetch normal.
+      return null;
+    }
+    return null;
+  } catch { return null; }
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
 
+  // Navegaciones / HTML → networkFirst (con fallback cache)
   if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(networkFirst(req));
     return;
   }
+
+  // Solo caché de recursos del mismo origen
   if (!sameOrigin) return;
 
+  // Imágenes de la galería → cacheFirst
   if (url.pathname.includes('/img/')) {
     event.respondWith(cacheFirst(req));
     return;
   }
+
+  // Otros (CSS/JS/íconos locales) → staleWhileRevalidate
   event.respondWith(staleWhileRevalidate(req));
 });
 

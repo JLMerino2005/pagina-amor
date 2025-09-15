@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Para Ti 💖</title>
   <meta name="description" content="Un detallito web hecho con amor." />
-  <meta name="theme-color" content="#0f0f14">
+  <meta name="theme-color" content="#0b0b12">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta property="og:title" content="Para Ti 💖">
@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0f0f14; --card:#151521; --ink:#ffffff; --muted:#cbd5e1;
+      --bg:#0b0b12; --card:#151521; --ink:#ffffff; --muted:#cbd5e1;
       --brand:#ff4d8d; --brand-2:#ffafcc; --accent:#7dd3fc;
       --glow:0 0 40px rgba(255,77,141,.35),0 0 8px rgba(255,77,141,.65);
       --radius:22px;
@@ -27,14 +27,11 @@
     html,body{margin:0;height:100%}
     body{
       font:16px/1.55 "Poppins",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(1200px 800px at 85% -10%,rgba(125,211,252,.18),transparent 60%),
-        radial-gradient(800px 500px at -10% 10%,rgba(255,175,204,.14),transparent 60%),
-        var(--bg);
       color:var(--ink);
+      background:#0b0b12; /* será sobreescrito por applyTheme() */
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:20px 18px 80px}
-    header{position:sticky;top:0;background:linear-gradient(180deg,rgba(15,15,20,.9),rgba(15,15,20,.55) 60%,transparent);backdrop-filter:saturate(130%) blur(8px);z-index:50}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px 18px 120px}
+    header{position:sticky;top:0;background:linear-gradient(180deg,rgba(10,10,19,.9),rgba(10,10,19,.55) 60%,transparent);backdrop-filter:saturate(130%) blur(8px);z-index:50}
     .nav{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 0}
     .brand{display:flex;align-items:center;gap:10px}
     .heart{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,#ffd1e1 30%,#ff7aa5 60%,#ff4d8d 80%);box-shadow:var(--glow)}
@@ -43,7 +40,7 @@
     .tab{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);cursor:pointer}
     .tab[aria-current="true"]{background:var(--brand);border-color:#ff8fb4;color:#12121b;box-shadow:var(--glow)}
 
-    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:center;margin:22px 0}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:center;margin:22px 0;position:relative}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:20px;box-shadow:0 4px 30px rgba(0,0,0,.25)}
     .hero h1{font-size:clamp(28px,5vw,48px);margin:6px 0 8px}
     .hero p{color:var(--muted);margin:0}
@@ -59,7 +56,6 @@
     section{scroll-margin-top:90px;margin-top:28px}
     h2{margin:0 0 10px}
     .muted{color:var(--muted)}
-
     .type{min-height:120px;white-space:pre-wrap}
     .cursor{display:inline-block;width:10px;background:#ff8fb4;margin-left:2px;animation:blink 1s steps(2,end) infinite}
     @keyframes blink{50%{background:transparent}}
@@ -93,17 +89,48 @@
     .burbuja{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:inline-flex;gap:8px;align-items:center;transform:rotate(var(--rot,0deg))}
     .burbuja .x{border:none;background:transparent;color:#ffafcc;cursor:pointer}
 
+    /* Menú flotante de fondos */
+    #menu-fondos{position:absolute;display:none;padding:10px;gap:8px;border-radius:14px}
+    .mini-t{width:120px;height:60px;border-radius:10px;margin:6px;cursor:pointer;border:1px solid rgba(255,255,255,.15)}
+
+    /* ===== Cupones sorpresa ===== */
+    .coupons-grid{ display:grid; gap:16px; grid-template-columns:repeat(3,1fr); }
+    @media (max-width:1000px){ .coupons-grid{ grid-template-columns:1fr 1fr; } }
+    @media (max-width:640px){ .coupons-grid{ grid-template-columns:1fr; } }
+    .coupon{
+      position:relative; overflow:hidden;
+      border-radius:18px; padding:22px; min-height:92px;
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .coupon h4{ margin:0; }
+    .coupon .hidden-text{
+      filter: blur(14px);
+      user-select:none; pointer-events:none;
+      opacity:0; transition:.25s ease;
+    }
+    .coupon .mask{
+      position:absolute; inset:0; display:grid; place-items:center;
+      background:
+        repeating-linear-gradient(-45deg, rgba(255,255,255,.06) 0 14px, rgba(255,255,255,.02) 14px 28px),
+        rgba(0,0,0,.25);
+      color:#cbd5e1; font-weight:600; letter-spacing:.2px;
+      cursor:pointer; text-align:center; padding:16px; transition:.25s ease;
+    }
+    .coupon.revealed .hidden-text{ filter:none; opacity:1; pointer-events:auto; user-select:text; }
+    .coupon.revealed .mask{ opacity:0; pointer-events:none; }
+
     .hidden{display:none !important}
     .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
     .piece{position:absolute;width:10px;height:16px;opacity:.9;animation:fall linear forwards}
     @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:1}}
 
     @media (prefers-reduced-motion: reduce){
-      * { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition:none !important; }
-      .floater, .confetti { display:none !important; }
+      *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition:none !important}
+      .floater,.confetti{display:none !important}
     }
     @media print{
-      header, nav, .tabs, #btn-replay, #btn-compartir, #btn-ajustes, .cta { display:none !important; }
+      header, nav, .tabs, #btn-replay, #btn-compartir, #btn-ajustes, #btn-elige-fondo, #btn-snap, #menu-fondos, .cta { display:none !important; }
       body{ background:#fff; color:#000; }
       .card{ box-shadow:none; border:1px solid #ddd; }
       a{ color:#000; }
@@ -116,7 +143,7 @@
 
   <!-- Hard refresh -->
   <script>
-  const APP_VERSION = '23';
+  const APP_VERSION = '29';
   (async () => {
     try {
       const prev = localStorage.getItem('app_version');
@@ -146,6 +173,10 @@
         <button class="tab" data-go="#galeria">Galería</button>
         <button class="tab" data-go="#ruleta">Ruleta</button>
         <button class="tab" data-go="#palabras">Palabras</button>
+        <button class="tab" data-go="#cupones">Cupones</button>
+        <button class="tab" data-go="#lugares">Lugares</button>
+        <button class="tab" data-go="#promesas">Promesas</button>
+        <button class="tab" data-go="#secreto">Secreto</button>
       </nav>
     </div>
   </header>
@@ -160,9 +191,23 @@
           <button class="btn primary" id="btn-scroll">Léela ahora</button>
           <button class="btn" id="btn-compartir">Compartir</button>
           <button class="btn" id="btn-ajustes">Editar nombres</button>
+          <button class="btn" id="btn-elige-fondo">Elegir fondo ▾</button>
+          <button class="btn" id="btn-snap">Guardar portada</button>
         </div>
       </div>
       <div class="card floaters" aria-hidden="true" id="floaters"></div>
+
+      <!-- Menú de fondos -->
+      <div id="menu-fondos" class="card">
+        <div data-t="aurora" class="mini-t" title="Aurora"  style="background:
+          radial-gradient(500px 300px at 10% -20%, rgba(125,211,252,.25), transparent 60%),
+          radial-gradient(500px 300px at 120% 10%, rgba(255,175,204,.25), transparent 60%), #0b0b12"></div>
+        <div data-t="neon" class="mini-t" title="Atardecer neón" style="background:
+          linear-gradient(180deg,#0a0a13,#100e26),repeating-linear-gradient(-25deg,rgba(255,77,141,.25)0 12px,rgba(125,211,252,.2)12px 24px)"></div>
+        <div data-t="galaxy" class="mini-t" title="Galaxia" style="background:#080810"></div>
+        <div data-t="hearts" class="mini-t" title="Corazones" style="background:
+          radial-gradient(500px 300px at 85% -20%, rgba(255,175,204,.3), transparent 60%),#0c0b12"></div>
+      </div>
     </div>
 
     <!-- CARTA -->
@@ -226,6 +271,47 @@
       <small class="muted">Consejo: agrega adjetivos o apodos bonitos. Toca la ✕ para borrar alguno.</small>
     </section>
 
+    <!-- CUPONES (sorpresa) -->
+    <section id="cupones" class="card">
+      <h2>🎟️ Cupones para ti</h2>
+      <div class="coupons-grid" id="couponsGrid"></div>
+      <div class="cta" style="margin-top:10px">
+        <button class="btn" id="btn-reset-coupons">Reiniciar cupones</button>
+      </div>
+      <small class="muted">Toca un cupón para revelarlo. Se guarda tu progreso.</small>
+    </section>
+
+    <!-- LUGARES -->
+    <section id="lugares" class="card">
+      <h2>📍 Nuestros lugares</h2>
+      <ul id="lista-lugares" style="padding-left:18px;margin:0"></ul>
+      <div class="palabras-form" style="margin-top:10px">
+        <input id="lugar-text" class="btn" placeholder="Ej. Cafetería de la esquina" />
+        <button class="btn primary" id="lugar-add">Agregar</button>
+        <button class="btn" id="lugar-clear">Limpiar</button>
+      </div>
+    </section>
+
+    <!-- PROMESAS -->
+    <section id="promesas" class="card">
+      <h2>📝 Nuestras promesas</h2>
+      <div id="todo"></div>
+      <div class="palabras-form" style="margin-top:10px">
+        <input id="todo-text" class="btn" placeholder="Ej. Ver amanecer juntos" />
+        <button class="btn primary" id="todo-add">Agregar</button>
+      </div>
+    </section>
+
+    <!-- SECRETO -->
+    <section id="secreto" class="card">
+      <h2>🔐 Mensaje secreto</h2>
+      <div class="palabras-form">
+        <input id="pin" class="btn" placeholder="PIN (4 dígitos)" maxlength="4">
+        <button class="btn primary" id="ver-secreto">Ver</button>
+      </div>
+      <div id="texto-secreto" class="hidden">Eres mi destino favorito. Gracias por escogerme cada día. 💫</div>
+    </section>
+
     <footer>
       Hecho con 💖 por <span id="pie-rem">alguien que te ama</span> · <a href="#" id="copylink">Copiar link</a>
     </footer>
@@ -246,17 +332,50 @@
     </div>
   </dialog>
 
+  <!-- html2canvas (opcional para "Guardar portada") -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
   <script>
     // ========= util =========
     const qs=(s,p=document)=>p.querySelector(s);
     const qsa=(s,p=document)=>[...p.querySelectorAll(s)];
     const params=new URLSearchParams(location.search);
 
+    // ======= THEMES =======
+    function applyTheme(name){
+      localStorage.setItem('theme', name);
+      if(name==='aurora'){
+        document.body.style.background = `
+          radial-gradient(1200px 800px at 85% -10%, rgba(125,211,252,.18), transparent 60%),
+          radial-gradient(800px 500px at -10% 10%, rgba(255,175,204,.14), transparent 60%),
+          #0b0b12`;
+      } else if(name==='neon'){
+        document.body.style.background = `
+          linear-gradient(180deg,#0a0a13,#100e26),
+          radial-gradient(600px 400px at 80% -10%, rgba(255,77,141,.18), transparent 60%),
+          repeating-linear-gradient(-25deg,rgba(255,77,141,.12)0 14px,rgba(125,211,252,.10)14px 28px)`;
+      } else if(name==='galaxy'){
+        let stars = '';
+        for(let i=0;i<200;i++){
+          const x=Math.random()*100, y=Math.random()*100, a=Math.random()*.9+.1;
+          stars += `radial-gradient(2px 2px at ${x}% ${y}%, rgba(255,255,255,${a}), transparent 60%),`;
+        }
+        document.body.style.background = stars + '#080810';
+      } else if(name==='hearts'){
+        document.body.style.background = `
+          radial-gradient(1200px 800px at 85% -10%, rgba(255,175,204,.18), transparent 60%),
+          radial-gradient(800px 500px at -10% 10%, rgba(255,77,141,.12), transparent 60%),
+          #0c0b12`;
+      }
+    }
+
     // Nombres
     const nombre = params.get('para') || localStorage.getItem('para') || 'Ti';
     const de = params.get('de') || localStorage.getItem('de') || 'mí';
     localStorage.setItem('para', nombre);
     localStorage.setItem('de', de);
+    const savedTheme = localStorage.getItem('theme') || 'aurora';
+    applyTheme(savedTheme);
 
     // header + hero
     qs('#nombre-dest').textContent = nombre;
@@ -311,7 +430,32 @@
     };
     qs('#copylink').onclick=(e)=>{e.preventDefault(); copiar(location.href)};
 
-    // CARTA (con tus recuerdos)
+    // ===== Selector de fondo (menú) =====
+    const menuFondos = document.getElementById('menu-fondos');
+    document.getElementById('btn-elige-fondo').onclick=(e)=>{
+      const r = e.target.getBoundingClientRect();
+      menuFondos.style.left = r.left+'px';
+      menuFondos.style.top  = (r.bottom+6)+'px';
+      menuFondos.style.display = menuFondos.style.display==='none'?'grid':'none';
+      menuFondos.style.gridTemplateColumns='repeat(4,1fr)';
+    };
+    menuFondos.querySelectorAll('.mini-t').forEach(m=>{
+      m.onclick=()=>{ applyTheme(m.dataset.t); menuFondos.style.display='none'; };
+    });
+    document.addEventListener('click',e=>{
+      if(!menuFondos.contains(e.target) && e.target.id!=='btn-elige-fondo'){ menuFondos.style.display='none'; }
+    });
+
+    // ===== Guardar portada (usa html2canvas) =====
+    document.getElementById('btn-snap').onclick=async()=>{
+      if(!window.html2canvas){ alert('Para mejor calidad usa html2canvas (ya está enlazado).'); return; }
+      const node=document.querySelector('.hero');
+      const canvas=await html2canvas(node,{backgroundColor:null,scale:2});
+      const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png'); a.download='ParaTi-portada.png'; a.click();
+    };
+
+    // CARTA
     const textoCarta = `Hola ${nombre}:
 
 Hoy me detuve a pensar en nosotros y en todo lo que hemos vivido. En cómo un “hola” sencillo se volvió el inicio de una historia que me hace sonreír incluso en los días difíciles. Me gusta la forma en la que llegas, sin ruido, y de pronto todo se siente más ligero. Me gusta cuando te ríes fuerte, cuando te quedas en silencio y también cuando me cuentas cualquier cosa aunque sea mínima; me gusta porque eres tú.
@@ -336,7 +480,7 @@ ${de}`;
     }
     escribir(); qs('#btn-replay').onclick=escribir;
 
-    // MOTIVOS (18)
+    // motivos
     const MOTIVOS=[
       ['Tu risa','Me alegra el día sin importar nada.'],
       ['Tu mirada','Me da paz y me recuerda por qué vale la pena todo.'],
@@ -357,15 +501,9 @@ ${de}`;
       ['Nuestros silencios','También hablan de amor.'],
       ['Nosotros','Porque lo nuestro es equipo, compañía y amor.']
     ];
-    const reasons=qs('#reasons');
-    MOTIVOS.forEach(([t,d])=>{
-      const c=document.createElement('div');
-      c.className='reason';
-      c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`;
-      reasons.appendChild(c);
-    });
+    const reasons=qs('#reasons'); MOTIVOS.forEach(([t,d])=>{ const c=document.createElement('div'); c.className='reason'; c.innerHTML=`<strong>${t}</strong><p class="muted" style="margin:6px 0 0">${d}</p>`; reasons.appendChild(c); });
 
-    // MOMENTOS (incluye lluvia, compras, café y comida juntos)
+    // timeline (momentos)
     const MOMENTOS=[
       ['Nos vimos por primera vez','Y el mundo hizo un ruidito de “clic”.'],
       ['Primer mensaje largo','La conversación que no queríamos que termine.'],
@@ -379,13 +517,7 @@ ${de}`;
       ['Plan improvisado perfecto','Porque lo inesperado contigo siempre sale bien.'],
       ['Nuestro futuro','Lo bonito que estamos construyendo juntos.']
     ];
-    const tl=qs('#timeline');
-    MOMENTOS.forEach(([t,d])=>{
-      const s=document.createElement('div');
-      s.className='step';
-      s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`;
-      tl.appendChild(s);
-    });
+    const tl=qs('#timeline'); MOMENTOS.forEach(([t,d])=>{ const s=document.createElement('div'); s.className='step'; s.innerHTML=`<div class="dot"></div><strong>${t}</strong><div class="muted">${d}</div>`; tl.appendChild(s); });
 
     // ========= GALERÍA =========
     const IMAGENES_META = [
@@ -455,6 +587,7 @@ ${de}`;
         if(RESUELTAS[next]){ fotoActual=next; full.src=RESUELTAS[next]; full.alt=IMAGENES_META[next].alt; break; }
       }
     }
+    window.cambiarFoto=cambiarFoto; window.abrirLightbox=abrirLightbox;
     dlg.addEventListener('click',e=>{ if(e.target.tagName==='DIALOG') dlg.close(); });
     window.addEventListener('keydown',e=>{ if(!dlg.open) return; if(e.key==='ArrowRight') cambiarFoto(1); if(e.key==='ArrowLeft') cambiarFoto(-1); if(e.key==='Escape') dlg.close(); });
 
@@ -547,23 +680,142 @@ ${de}`;
       if(confirm('¿Vaciar todas las palabras?')){ palabras=[]; savePal(); renderPal(); }
     };
 
-    // focus
+    // ========= CUPONES SORPRESA =========
+    const CUPONES = [
+      'Vale por un helado a tu antojo 🍦',
+      'Vale por masaje de 20 minutos 💆‍♀️',
+      'Vale por una noche de pelis y palomitas 🎬',
+      'Vale por desayuno en la cama 🥞',
+      'Vale por 3 cumplidos espontáneos en el día ✨',
+      'Vale por paseo bajo la lluvia ☔',
+      'Vale por tu snack favorito hoy 🍫',
+      'Vale por una siesta abrazados 😴',
+      'Vale por preparar tu café justo como te gusta ☕',
+      'Vale por cantarte tu canción preferida 🎤',
+      'Vale por fotito juntos impresa 📸',
+      'Vale por un “sí” a tu plan loco del día 🤪'
+    ];
+    const CUPONES_KEY = 'cupones_revealed_v1';
+    let cuponesRevealed = JSON.parse(localStorage.getItem(CUPONES_KEY) || '[]');
+
+    function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+    const listCupones = shuffle([...CUPONES]);
+
+    const couponsGrid = document.getElementById('couponsGrid');
+    function saveCoupons(){ localStorage.setItem(CUPONES_KEY, JSON.stringify(cuponesRevealed)); }
+
+    function buildCoupons(){
+      couponsGrid.innerHTML='';
+      listCupones.forEach((texto, idx)=>{
+        const card=document.createElement('div');
+        card.className='coupon'+(cuponesRevealed.includes(idx)?' revealed':'');
+        card.innerHTML=`
+          <h4 class="hidden-text">${texto}</h4>
+          <div class="mask"><span>🎟️ Cupón sorpresa — toca para revelar</span></div>
+        `;
+        card.addEventListener('click', ()=>{
+          if(!card.classList.contains('revealed')){
+            card.classList.add('revealed');
+            if(!cuponesRevealed.includes(idx)) cuponesRevealed.push(idx);
+            saveCoupons(); try{confetti();}catch{}
+          }
+        });
+        couponsGrid.appendChild(card);
+      });
+    }
+    buildCoupons();
+    document.getElementById('btn-reset-coupons').addEventListener('click', ()=>{
+      if(confirm('¿Reiniciar todos los cupones?')){
+        cuponesRevealed=[]; saveCoupons(); buildCoupons();
+      }
+    });
+
+    // ========= LUGARES =========
+    const LUG_KEY='lugares_v1';
+    let LUGARES = JSON.parse(localStorage.getItem(LUG_KEY)||'[]');
+    const ul=qs('#lista-lugares');
+    function saveL(){ localStorage.setItem(LUG_KEY, JSON.stringify(LUGARES)); }
+    function renderL(){
+      ul.innerHTML='';
+      if(!LUGARES.length){ ul.innerHTML='<span class="muted">Agrega el primer lugar ✨</span>'; return; }
+      LUGARES.forEach((t,i)=>{
+        const li=document.createElement('li'); li.style.margin='6px 0';
+        li.innerHTML=`${t} <button class="x btn" style="padding:4px 8px;margin-left:8px">✕</button>`;
+        li.querySelector('button').onclick=()=>{LUGARES.splice(i,1);saveL();renderL();};
+        ul.appendChild(li);
+      });
+    }
+    renderL();
+    qs('#lugar-add').onclick=()=>{ const t=qs('#lugar-text').value.trim(); if(!t) return; LUGARES.push(t); qs('#lugar-text').value=''; saveL(); renderL(); };
+    qs('#lugar-clear').onclick=()=>{ if(confirm('¿Vaciar todos?')){ LUGARES=[]; saveL(); renderL(); } };
+
+    // ========= PROMESAS =========
+    const TODO_KEY='promesas_v1';
+    let TODOS = JSON.parse(localStorage.getItem(TODO_KEY)||'[]');
+    const todoDiv = document.getElementById('todo');
+    function saveT(){ localStorage.setItem(TODO_KEY, JSON.stringify(TODOS)); }
+    function renderT(){
+      todoDiv.innerHTML='';
+      if(!TODOS.length){ todoDiv.innerHTML='<span class="muted">Agrega la primera promesa ✨</span>'; return; }
+      TODOS.forEach((it,i)=>{
+        const row=document.createElement('label');
+        row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px'; row.style.margin='6px 0';
+        row.innerHTML=`<input type="checkbox" ${it.done?'checked':''} />
+                       <span style="text-decoration:${it.done?'line-through':'none'}">${it.text}</span>
+                       <button class="btn" style="padding:4px 8px;margin-left:auto">✕</button>`;
+        const [chk,span,del]=row.children;
+        chk.onchange=()=>{ TODOS[i].done=chk.checked; span.style.textDecoration=chk.checked?'line-through':'none'; saveT(); confetti(); };
+        del.onclick=()=>{ TODOS.splice(i,1); saveT(); renderT(); };
+        todoDiv.appendChild(row);
+      });
+    }
+    renderT();
+    document.getElementById('todo-add').onclick=()=>{
+      const t=document.getElementById('todo-text').value.trim();
+      if(!t) return;
+      TODOS.push({text:t,done:false}); document.getElementById('todo-text').value='';
+      saveT(); renderT();
+    };
+
+    // ========= MENSAJE SECRETO =========
+    const PIN='1234'; // cámbialo si quieres
+    qs('#ver-secreto').onclick=()=>{
+      if(qs('#pin').value===PIN){ qs('#texto-secreto').classList.remove('hidden'); confetti(); }
+      else alert('PIN incorrecto 😅');
+    };
+
+    // ========= Reacciones de corazón al doble click =========
+    document.addEventListener('dblclick', (e)=>{
+      const h=document.createElement('div');
+      h.textContent='💖';
+      h.style.position='fixed';
+      h.style.left=e.clientX+'px';
+      h.style.top=e.clientY+'px';
+      h.style.fontSize='28px';
+      h.style.transform='translate(-50%,-50%) scale(0.6)';
+      h.style.transition='600ms ease';
+      document.body.appendChild(h);
+      requestAnimationFrame(()=>{ h.style.transform='translate(-50%,-120%) scale(1.4)'; h.style.opacity='0'; });
+      setTimeout(()=>h.remove(), 650);
+    });
+
+    // focus styles
     qsa('button, input').forEach(el=>{ el.addEventListener('focus',()=>el.style.outline='2px solid var(--accent)'); el.addEventListener('blur',()=>el.style.outline='none'); });
 
     // Ajustes
     const dlgAj=qs('#dlg-ajustes');
     qs('#btn-ajustes').onclick=()=>{ qs('#inp-para').value=nombre; qs('#inp-de').value=de; dlgAj.showModal(); };
     qs('#aj-cancel').onclick=()=>dlgAj.close();
-    qs('#aj-guardar').onclick=()=>{ 
-      const n=qs('#inp-para').value.trim()||'Ti'; 
-      const d=qs('#inp-de').value.trim()||'mí'; 
-      localStorage.setItem('para',n); localStorage.setItem('de',d); 
+    qs('#aj-guardar').onclick=()=>{
+      const n=qs('#inp-para').value.trim()||'Ti';
+      const d=qs('#inp-de').value.trim()||'mí';
+      localStorage.setItem('para',n); localStorage.setItem('de',d);
       const u=new URL(location.href);
       u.searchParams.set('para', n); u.searchParams.set('de', d);
       location.search = u.search;
     };
 
-    // ===== Service Worker con auto-update =====
+    // Service Worker (auto-update)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
